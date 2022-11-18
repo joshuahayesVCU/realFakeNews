@@ -1,4 +1,6 @@
 # Author: Joshua Hayes
+import copy
+import random
 
 # The web scraping tool used to gather headlines and links for the guessing game
 # Utilizes the Reddit API to gather data
@@ -8,39 +10,96 @@ import praw
 
 # Creating a scraper instance using the Reddit class inside praw's library
 
-# Define user agent
-# This is what access the data
+# Define user agent and create a reddit class
 user_agent = "praw_scraper"
+reddit = praw.Reddit(client_id="kJ7QyvYqKCvHNOg3gV59cA", client_secret="hI7CLLMKjD7Lq2IZu_XkWRehd3saqQ", user_agent=user_agent)
 
-# Create an instance of reddit class
-reddit = praw.Reddit(client_id = "kJ7QyvYqKCvHNOg3gV59cA",
-                     client_secret = "hI7CLLMKjD7Lq2IZu_XkWRehd3saqQ",
-                     user_agent = user_agent)
+# List to store future article objects
+notTheOnion = []
+theOnion = []
 
-# specifying the subreddit to scrape the data from
-subreddit_name = "nottheonion"
-subreddit = reddit.subreddit(subreddit_name)
 
-print(subreddit.display_name)
+# Article class to store headlines and urls from scraped post
+class Article:
 
-# importing the pandas library and creating a data frame
-import pandas as pd
-df = pd.DataFrame()
+    def __init__(self, headline, url, isReal):
+        self.headline = headline
+        self.url = url
+        self.isReal = isReal
 
-# list to store details of scraped post
-titles = []
-url = []
-scores = []
+    def get_headline(self):
+        return self.headline
 
-# accessing the new posts using a loop
-for submission in subreddit.hot(limit=20):
-    titles.append(submission.title)
-    url.append(submission.url)
-    scores.append(submission.score)
+    def get_url(self):
+        return self.url
 
-df['Title'] = titles
-df['selfText'] = url
-df['Upvotes'] = scores
+# Method to scrape subreddit post
+def scrape(article_list, subreddit_name, postRange, realNews):
 
-print(df.shape)
-print(df.head(10))
+    # Subreddit to scrape from
+    subreddit = reddit.subreddit(subreddit_name)
+
+    # Fills given list from top post to range (if not fake)
+    if realNews:
+        for submission in subreddit.hot(limit=(postRange - 1)):
+            article_list.append(Article(submission.title, submission.url, True))
+    else:
+        for submission in subreddit.hot(limit=(postRange - 1)):
+            article_list.append(Article(submission.title, submission.url, False))
+
+
+def game(fake_news, real_news):
+
+    active_game = True
+    current_score = 0
+
+    scrape(theOnion, "TheOnion", 50, True)
+    scrape(notTheOnion, "notTheOnion", 50, False)
+
+    while active_game:
+        print("=-=-=-=-= REAL FAKE NEWS =-=-=-=-=")
+        print("Two of these news articles are real, one is fake. Can you spot the impostor?")
+        print("Current score: " + str(current_score))
+
+        # TODO: Make this not have duplicates / put in its own function
+        choice_list = []
+        article1 = copy.deepcopy(notTheOnion[random.randint(0, 50)])
+        article2 = copy.deepcopy(notTheOnion[random.randint(0, 50)])
+        article3 = copy.deepcopy(theOnion[random.randint(0, 50)])
+        choice_list.append(article1)
+        choice_list.append(article2)
+        choice_list.append(article3)
+        random.shuffle(choice_list)
+
+        print("1." + choice_list[0].headline)
+        print("2." + choice_list[1].headline)
+        print("3." + choice_list[2].headline)
+
+        answer = int(input("Type the number you think is fake: "))
+
+        while answer <= 0 or answer >= 4:
+            print("ERROR: Invalid choice. Please choice a number between 1 and 3")
+            answer = int(input("Type the number you think is fake: "))
+
+        if not choice_list[answer-1].isReal:
+            print("That's right!")
+            print("Read the article here: " + choice_list[answer-1].url)
+            current_score += 1
+        else:
+            print("That's not right")
+            print("But you can read your article choice here: " + choice_list[answer-1].url)
+        print()
+
+        keep_playing = input("Do you want to play again? Y / N ")
+        if not keep_playing.lower() == "y":
+            active_game = False
+
+    print("=-=-=-=-= Thanks for playing! =-=-=-=-=")
+    print("Total score: " + str(current_score))
+
+
+game(notTheOnion, theOnion)
+
+
+
+
