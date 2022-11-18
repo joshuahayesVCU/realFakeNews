@@ -68,9 +68,9 @@ def game(fake_news, real_news):
         # Creates a new list to store 3 random articles
         choice_list = []
         # deep copies 3 articles from scraped article list
-        article1 = copy.deepcopy(notTheOnion[random.randint(0, 50)])
-        article2 = copy.deepcopy(notTheOnion[random.randint(0, 50)])
-        article3 = copy.deepcopy(theOnion[random.randint(0, 50)])
+        article1 = copy.deepcopy(notTheOnion[random.randint(0, 49)])
+        article2 = copy.deepcopy(notTheOnion[random.randint(0, 49)])
+        article3 = copy.deepcopy(theOnion[random.randint(0, 49)])
         # Adds deep copies to list of choices
         choice_list.append(article1)
         choice_list.append(article2)
