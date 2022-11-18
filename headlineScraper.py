@@ -50,25 +50,32 @@ def scrape(article_list, subreddit_name, postRange, realNews):
 
 def game(fake_news, real_news):
 
+    # Bool for main game loop, score tracker
     active_game = True
     current_score = 0
 
+    # Scraping the articles from reddit
     scrape(theOnion, "TheOnion", 50, True)
     scrape(notTheOnion, "notTheOnion", 50, False)
 
+    # main game loop
     while active_game:
         print("=-=-=-=-= REAL FAKE NEWS =-=-=-=-=")
         print("Two of these news articles are real, one is fake. Can you spot the impostor?")
         print("Current score: " + str(current_score))
 
         # TODO: Make this not have duplicates / put in its own function
+        # Creates a new list to store 3 random articles
         choice_list = []
+        # deep copies 3 articles from scraped article list
         article1 = copy.deepcopy(notTheOnion[random.randint(0, 50)])
         article2 = copy.deepcopy(notTheOnion[random.randint(0, 50)])
         article3 = copy.deepcopy(theOnion[random.randint(0, 50)])
+        # Adds deep copies to list of choices
         choice_list.append(article1)
         choice_list.append(article2)
         choice_list.append(article3)
+        # Shuffle list to ensure randomness of choices
         random.shuffle(choice_list)
 
         print("1." + choice_list[0].headline)
@@ -77,19 +84,24 @@ def game(fake_news, real_news):
 
         answer = int(input("Type the number you think is fake: "))
 
+        # Handling of invalid input
         while answer <= 0 or answer >= 4:
             print("ERROR: Invalid choice. Please choice a number between 1 and 3")
             answer = int(input("Type the number you think is fake: "))
 
+        # If the choice is fake
         if not choice_list[answer-1].isReal:
             print("That's right!")
             print("Read the article here: " + choice_list[answer-1].url)
             current_score += 1
+
+        # If the choice is real
         else:
             print("That's not right")
             print("But you can read your article choice here: " + choice_list[answer-1].url)
         print()
 
+        # Continue or exit loop
         keep_playing = input("Do you want to play again? Y / N ")
         if not keep_playing.lower() == "y":
             active_game = False
